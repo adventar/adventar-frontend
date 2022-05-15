@@ -1,4 +1,4 @@
-import { FC } from "react";
+import type { FC } from "react";
 
 const TopPage: FC = () => {
   return <h1>Hello Next!</h1>;
