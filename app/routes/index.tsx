@@ -1,23 +1,31 @@
-export default function Index() {
+import type { LoaderFunction } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
+import { Link, useLoaderData } from "@remix-run/react";
+
+type Calendar = {
+  id: string;
+  title: string;
+};
+
+export const loader: LoaderFunction = async () => {
+  const url = "https://api.adventar.org/adventar.v1.Adventar/ListCalendars";
+  const res = await fetch(url, { method: "POST", body: JSON.stringify({ year: 2021, page_size: 30 }) });
+  const resultJson = (await res.json()) as any;
+  return json(resultJson.calendars);
+};
+
+export default function TopPage() {
+  const calendars = useLoaderData<Calendar[]>();
+
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.4" }}>
-      <h1>Welcome to Remix</h1>
+    <div>
+      <h1>Adventar</h1>
       <ul>
-        <li>
-          <a target="_blank" href="https://remix.run/tutorials/blog" rel="noreferrer">
-            15m Quickstart Blog Tutorial
-          </a>
-        </li>
-        <li>
-          <a target="_blank" href="https://remix.run/tutorials/jokes" rel="noreferrer">
-            Deep Dive Jokes App Tutorial
-          </a>
-        </li>
-        <li>
-          <a target="_blank" href="https://remix.run/docs" rel="noreferrer">
-            Remix Docs
-          </a>
-        </li>
+        {calendars.map((calendar) => (
+          <li key={calendar.id}>
+            <Link to={`/calendars/${calendar.id}`}>{calendar.title}</Link>
+          </li>
+        ))}
       </ul>
     </div>
   );
