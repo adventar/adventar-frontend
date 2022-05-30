@@ -1,32 +1,18 @@
 import type { LoaderFunction } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { Link, useLoaderData } from "@remix-run/react";
+import { useLoaderData } from "@remix-run/react";
+import { TopPage } from "~/components/pages/TopPage/TopPage";
+import { fetchCalendarList } from "~/services/calendar/api";
+import type { Calendar } from "~/services/calendar/type";
 
-type Calendar = {
-  id: string;
-  title: string;
-};
+type LoaderData = Calendar[];
 
 export const loader: LoaderFunction = async () => {
-  const url = "https://api.adventar.org/adventar.v1.Adventar/ListCalendars";
-  const res = await fetch(url, { method: "POST", body: JSON.stringify({ year: 2021, page_size: 30 }) });
-  const resultJson = (await res.json()) as any;
-  return json(resultJson.calendars);
+  const calendars = await fetchCalendarList({ year: 2021, pageSize: 30 });
+  return json<LoaderData>(calendars);
 };
 
-export default function TopPage() {
-  const calendars = useLoaderData<Calendar[]>();
-
-  return (
-    <div>
-      <h1>Adventar</h1>
-      <ul>
-        {calendars.map((calendar) => (
-          <li key={calendar.id}>
-            <Link to={`/calendars/${calendar.id}`}>{calendar.title}</Link>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+export default function TopPageContainer() {
+  const calendars = useLoaderData<LoaderData>();
+  return <TopPage calendars={calendars} />;
 }

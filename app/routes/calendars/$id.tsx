@@ -1,37 +1,21 @@
 import type { LoaderFunction } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
-import MarkdownIt from "markdown-it";
-import { useMemo } from "react";
+import invariant from "tiny-invariant";
+import { CalendarPage } from "~/components/pages/calendars/CalendarPage/CalendarPage";
+import { fetchCalendar } from "~/services/calendar/api";
+import type { Calendar } from "~/services/calendar/type";
+
+type LoaderData = Calendar;
 
 export const loader: LoaderFunction = async ({ params }) => {
-  const id = params.id as string;
-  const url = "https://api.adventar.org/adventar.v1.Adventar/GetCalendar";
-  const res = await fetch(url, { method: "POST", body: JSON.stringify({ calendar_id: id }) });
-  const resultJson = (await res.json()) as any;
-  return json(resultJson.calendar);
+  const id = params.id;
+  invariant(id, "calendar id is required");
+  const calendar = await fetchCalendar(id);
+  return json<LoaderData>(calendar);
 };
 
-type Calendar = {
-  id: number;
-  title: string;
-  year: number;
-  description: string;
-};
-
-export default function CalendarPage() {
-  const calendar = useLoaderData<Calendar>();
-  const description = useMemo(() => {
-    return MarkdownIt({ linkify: true, breaks: true }).render(calendar.description);
-  }, [calendar.description]);
-
-  return (
-    <div>
-      <h1>Adventar</h1>
-      <h2>
-        {calendar.title} Advent Calendar {calendar.year}
-      </h2>
-      <div dangerouslySetInnerHTML={{ __html: description }} />
-    </div>
-  );
+export default function CalendarPageContainer() {
+  const calendar = useLoaderData<LoaderData>();
+  return <CalendarPage calendar={calendar} />;
 }
